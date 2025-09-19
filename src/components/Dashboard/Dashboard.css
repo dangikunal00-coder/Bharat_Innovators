@@ -1,0 +1,24 @@
+.dashboard-container {
+  font-family: Arial, sans-serif;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.dashboard-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.services-heading {
+  margin-top: 40px;
+  color: #555;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 10px;
+}
+
+.services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
