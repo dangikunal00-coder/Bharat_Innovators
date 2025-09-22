@@ -98,3 +98,30 @@
   margin-bottom: 15px;
   text-align: center;
 }
+/* Add these styles to your existing CSS file */
+
+.password-input-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 15px; /* Added for consistent spacing */
+}
+
+.password-input-container input {
+  width: 100%;
+  padding-right: 40px; /* This makes space for the icon inside the input */
+  /* Other input styles... */
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  right: 15px;
+  top: 40%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #777;
+  font-size: 1.2rem;
+}

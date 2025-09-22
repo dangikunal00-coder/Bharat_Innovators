@@ -13,7 +13,7 @@ import Signup from './components/Signup/Signup'
 import Profile from './components/Profile/Profile'
 // import ResetPassword from './components/ResetPassword/ResetPassword'
 import './App.css'
-import { DotLottieReact } from '@lottiefiles/dotlottie-react'
+// import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -30,7 +30,8 @@ const App = () => {
   if (loading) {
     return (
       <div className="loading-spinner">
-        <DotLottieReact src="path/to/animation.lottie" loop autoplay />
+        {/* <DotLottieReact src="path/to/animation.lottie" loop autoplay /> */}
+        loading...
       </div>
     )
   }
