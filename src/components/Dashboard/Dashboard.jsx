@@ -212,7 +212,7 @@ const Dashboard = () => {
   const renderMainContent = () => (
     <>
       <div className="dashboard-banner">
-        <img src={HeroImg} alt="Indore 311 Building" />
+        <img src={HeroImg} alt="BMP" />
       </div>
       <div className="button-grid">
         <div className="grid-button">
