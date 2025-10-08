@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Department Reports Map</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 600px;
+        width: 100%;
+      }
+      .filters {
+        padding: 10px;
+        background: #f5f5f5;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      select,
+      button {
+        padding: 5px 10px;
+        font-size: 14px;
+      }
+      .legend {
+        background: white;
+        padding: 10px;
+        line-height: 1.5;
+        border-radius: 5px;
+        font-size: 14px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+      }
+      .legend div {
+        display: flex;
+        align-items: center;
+      }
+      .legend span {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Department Reports Map</h2>
+
+    <div class="filters">
+      <label>Department:</label>
+      <select id="departmentFilter">
+        <option value="All">All Departments</option>
+        <option value="Water Supply">Water Supply</option>
+        <option value="Roads & Transport">Roads & Transport</option>
+        <option value="Water Management">Water Management</option>
+      </select>
+
+      <label>Status:</label>
+      <select id="statusFilter">
+        <option value="All">All Status</option>
+        <option value="Open">Open</option>
+        <option value="Closed">Closed</option>
+        <option value="In Progress">In Progress</option>
+      </select>
+
+      <button onclick="applyFilter()">Apply Filter</button>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+      // Initialize map
+      var map = L.map("map").setView([28.6139, 77.209], 13);
+
+      // Add OpenStreetMap tiles
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
+
+      let issues = [];
+      var markersLayer = L.layerGroup().addTo(map);
+      // Color palette
+      var deptColors = {};
+      var colorPalette = [
+        "red",
+        "blue",
+        "green",
+        "orange",
+        "purple",
+        "brown",
+        "pink",
+        "teal",
+        "cyan",
+        "magenta",
+      ];
+
+      function getDeptColor(dep) {
+        if (!deptColors[dep]) {
+          var color =
+            colorPalette[Object.keys(deptColors).length % colorPalette.length];
+          deptColors[dep] = color;
+        }
+        return deptColors[dep];
+      }
+      function getHeatPoints(filteredIssues) {
+        return filteredIssues.map((i) => [i.lat, i.lng, 1]);
+      }
+      function showMarkers(filteredIssues) {
+        markers.clearLayers();
+        filteredIssues.forEach((issue) => {
+          var deptKey = normalizeDepartment(issue.department);
+          var color = deptColors[deptKey] || "gray";
+
+          console.log("Department:", issue.department, "→ Color:", color);
+
+          var marker = L.circleMarker([issue.lat, issue.lng], {
+            radius: 8,
+            fillColor: color,
+            color: "#000",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8,
+          }).addTo(markers);
+
+          marker.bindPopup(
+            `<b>Department:</b> ${issue.department}<br><b>Status:</b> ${issue.status}`
+          );
+        });
+      }
+
+      function applyFilter() {
+        var dep = document.getElementById("departmentFilter").value;
+        var stat = document.getElementById("statusFilter").value;
+
+        var filtered = issues.filter(
+          (i) =>
+            (dep === "All" || i.department === dep) &&
+            (stat === "All" || i.status === stat)
+        );
+
+        // Area filter using Turf.js
+        if (selectedArea) {
+          filtered = filtered.filter((i) => {
+            var pt = turf.point([i.lng, i.lat]);
+            var poly = turf.polygon([
+              selectedArea.getLatLngs()[0].map((ll) => [ll.lng, ll.lat]),
+            ]);
+            return turf.booleanPointInPolygon(pt, poly);
+          });
+        }
+        heat.setLatLngs(getHeatPoints(filtered));
+        showMarkers(filtered);
+      }
+      fetch("/api/issues")
+        .then((res) => res.json())
+        .then((data) => {
+          data.forEach(function (issue) {
+            var color = getDeptColor(issue.department);
+
+            console.log("Department:", issue.department, "→ Color:", color);
+
+            var marker = L.circleMarker([issue.lat, issue.lng], {
+              radius: 8,
+              fillColor: color,
+              color: color,
+              weight: 1,
+              opacity: 1,
+              fillOpacity: 0.8,
+            }).addTo(map);
+
+            marker.bindPopup(
+              "<b>" + issue.title + "</b><br/>Department: " + issue.department
+            );
+          });
+
+          // Add legend dynamically
+          var legend = L.control({ position: "bottomright" });
+
+          legend.onAdd = function () {
+            var div = L.DomUtil.create("div", "legend");
+            div.innerHTML = "<strong>Departments</strong><br>";
+            Object.keys(deptColors).forEach(function (dep) {
+              div.innerHTML +=
+                '<div><span style="display:inline-block;width:12px;height:12px;background:' +
+                deptColors[dep] +
+                ';margin-right:4px;"></span>' +
+                dep +
+                "</div>";
+            });
+            return div;
+          };
+
+          legend.addTo(map);
+        });
+
+      // Initialize all
+      applyFilter();
+    </script>
+  </body>
+</html>
